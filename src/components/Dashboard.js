@@ -3,12 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutUser } from '../authActions';
 import { fetchUsers } from '../userSlice'; 
+import { sendMessage } from '../authActions';
 
 const Dashboard = () => {
   const userInfo = JSON.parse(localStorage.getItem('userInfo'));
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [selectedUser, setSelectedUser] = useState(null);
+  const [messageInput, setMessageInput] = useState('');
 
   const backendImagePath = 'http://127.0.0.1:8000/images';
   useEffect(() => {
@@ -27,6 +29,17 @@ const Dashboard = () => {
   const handleUserClick = (user) => {
     setSelectedUser(user);
   };
+
+  const handleMessageSend = () => {
+    
+    dispatch(sendMessage({
+      message: messageInput,
+      sender_id: userInfo.user.id,
+      receiver_id: selectedUser.id
+    }));
+
+    setMessageInput('');
+  }
   
   const users = useSelector((state) => state.user.users);
   const loading = useSelector((state) => state.user.loading);
@@ -76,8 +89,10 @@ const Dashboard = () => {
                       
                     </div>
                     <div className=" row form-outline">
-                      <input className="form-control" id="textAreaExample"   placeholder="Type your Message..." />
-                      <button className="btn btn-primary mt-2">Send</button>
+                      <input className="form-control" id="textAreaExample"  
+                          placeholder="Type your Message..." value={messageInput} 
+                          onChange={(e) => setMessageInput(e.target.value)} />
+                      <button className="btn btn-primary mt-2"  onClick={handleMessageSend}>Send</button>
                     </div>
                   </div>
                 </div>

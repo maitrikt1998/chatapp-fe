@@ -15,7 +15,6 @@ export const registerUser = createAsyncThunk(
 
       await axios.post(`${backendURL}/api/register`, formData, config);
 
-      // Return a success message or data if needed
       return 'Registration successful';
     } catch (error) {
       if (error.response && error.response.data.message) {
@@ -60,11 +59,11 @@ export const logoutUser = createAsyncThunk(
     }
 );
 
-export const createMessage = createAsyncThunk(
+export const sendMessage = createAsyncThunk(
   'messages/send',
   async(messageData, { rejectWithValue }) => {
     try{
-      const response = await axios.post('your_backend_api_url/messages', messageData);
+      const response = await axios.post(`${backendURL}/api/messages`, messageData);
       return response.data;
     }catch(error){
       return rejectWithValue(error.message);
