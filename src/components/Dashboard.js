@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutUser } from '../authActions';
-import { fetchUsers } from '../userSlice'; 
+import { fetchMessage, fetchUsers } from '../userSlice'; 
 import { sendMessage } from '../authActions';
+import '../App.css';
 
 const Dashboard = () => {
   const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const messages = useSelector(state => state.user.messages);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [selectedUser, setSelectedUser] = useState(null);
@@ -28,6 +30,23 @@ const Dashboard = () => {
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
+    dispatch(fetchMessage({ sender_id: userInfo.user.id, receiver_id: user.id }));
+  };
+
+  const renderMessage = (message) => {
+    const isSentByCurrentUser = message.sender_id === userInfo.user.id;
+    const messageClass = isSentByCurrentUser ? 'message-sent' : 'message-received';
+  
+    const messageDate = new Date(message.created_at);
+    const formattedDate = messageDate.toLocaleDateString();
+    const formattedTime = messageDate.toLocaleTimeString();
+  
+    return (
+      <div key={message.id} className={`message ${messageClass}`}>
+        <p>{message.message}</p>
+        <span className="message-meta">{formattedDate} <span className='text-red'>{formattedTime}</span></span>
+      </div>
+    );
   };
 
   const handleMessageSend = () => {
@@ -86,7 +105,7 @@ const Dashboard = () => {
                   </div>
                   <div className="card-body">
                     <div className="message-body" style={{ height: '500px', overflow: 'auto', flexDirection: 'column-reverse' }}>
-                      
+                    {messages.map(renderMessage)}
                     </div>
                     <div className=" row form-outline">
                       <input className="form-control" id="textAreaExample"  
