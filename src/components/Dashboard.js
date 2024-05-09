@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { logoutUser } from '../authActions';
 import { fetchMessage, fetchUsers } from '../userSlice'; 
 import { sendMessage } from '../authActions';
+import io from 'socket.io-client';
 import '../App.css';
 
 const Dashboard = () => {
@@ -13,8 +14,17 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState('');
+  const [socket, setSocket] = useState(null);
 
   const backendImagePath = 'http://127.0.0.1:8000/images';
+
+  useEffect(() => {
+    const newSocket = io('http://localhost:3005');
+    setSocket(newSocket);
+
+    return () => newSocket.close();
+  }, []);
+
   useEffect(() => {
     if (!userInfo) {
       navigate('/login');
@@ -22,6 +32,18 @@ const Dashboard = () => {
       dispatch(fetchUsers());
     }
   }, []); 
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('message', (message) => {
+      console.log('Received message:', message);
+    });
+
+    return () => {
+      socket.off('message');
+    };
+  }, [socket]);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -50,20 +72,26 @@ const Dashboard = () => {
   };
 
   const handleMessageSend = () => {
-    
     dispatch(sendMessage({
       message: messageInput,
       sender_id: userInfo.user.id,
       receiver_id: selectedUser.id
     }));
 
+    if (socket) {
+      socket.emit('message', {
+        message: messageInput,
+        sender_id: userInfo.user.id,
+        receiver_id: selectedUser.id
+      });
+    }
+    
     setMessageInput('');
   }
-  
+
   const users = useSelector((state) => state.user.users);
-  const loading = useSelector((state) => state.user.loading);
-  const error = useSelector((state) => state.user.error);
   const frontendUrl = "http://localhost:3000";
+  
   return (
     <div className="container">
         <div className="d-flex justify-content-between align-items-center mb-3">
