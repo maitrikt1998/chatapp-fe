@@ -1,4 +1,4 @@
-import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice,createAsyncThunk, createAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const initialState = {
@@ -30,7 +30,7 @@ export const fetchMessage = createAsyncThunk(
     }
   )
 
-
+export const addNewMessage = createAction('user/addNewMessage');
 const userSlice = createSlice({
     name:'user',
     initialState,
@@ -61,6 +61,9 @@ const userSlice = createSlice({
         .addCase(fetchMessage.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload;
+        })
+        .addCase(addNewMessage, (state, action) => {
+            state.messages.push(action.payload);
         });
     }
 });
